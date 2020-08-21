@@ -16,6 +16,7 @@ from torch.utils.data.dataloader import DataLoader
 
 logger = logging.getLogger(__name__)
 
+
 class TrainerConfig:
     # optimization parameters
     max_epochs = 10
@@ -23,18 +24,19 @@ class TrainerConfig:
     learning_rate = 3e-4
     betas = (0.9, 0.95)
     grad_norm_clip = 1.0
-    weight_decay = 0.1 # only applied on matmul weights
+    weight_decay = 0.1  # only applied on matmul weights
     # learning rate decay params: linear warmup followed by cosine decay to 10% of original
     lr_decay = False
-    warmup_tokens = 375e6 # these two numbers come from the GPT-3 paper, but may not be good defaults elsewhere
-    final_tokens = 260e9 # (at what point we reach 10% of original LR)
+    warmup_tokens = 375e6  # these two numbers come from the GPT-3 paper, but may not be good defaults elsewhere
+    final_tokens = 260e9  # (at what point we reach 10% of original LR)
     # checkpoint settings
     ckpt_path = None
-    num_workers = 0 # for DataLoader
+    num_workers = 0  # for DataLoader
 
     def __init__(self, **kwargs):
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             setattr(self, k, v)
+
 
 class Trainer:
 
@@ -71,6 +73,7 @@ class Trainer:
 
             losses = []
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
+
             for it, (x, y) in pbar:
 
                 # place data on the correct device
@@ -80,7 +83,7 @@ class Trainer:
                 # forward the model
                 with torch.set_grad_enabled(is_train):
                     logits, loss = model(x, y)
-                    loss = loss.mean() # collapse all losses if they are scattered on multiple gpus
+                    loss = loss.mean()  # collapse all losses if they are scattered on multiple gpus
                     losses.append(loss.item())
 
                 if is_train:
