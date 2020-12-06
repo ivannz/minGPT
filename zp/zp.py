@@ -5,6 +5,8 @@ from wikia.wikia import WikiaError
 
 from urllib.parse import unquote
 
+use_transcript = False
+
 out_file, in_file = 'zp.txt', 'zp_episodes.txt'
 with open(in_file, 'tr') as fin:
     episodes = set([unquote(line) for line in map(str.strip, fin) if line])
@@ -18,7 +20,11 @@ with open(out_file, 'ta+') as fout, open(ready_file, 'at+') as ready:
     for episode in tqdm.tqdm(episodes):
         try:
             page = wikia.page('zeropunctuation', episode)
-            transcript = page.section('Transcript')
+            if use_transcript:
+                transcript = page.section('Transcript')
+
+            else:
+                transcript = page.content
 
             fout.write(f'EPISODE: {page.title}\n\n')
             if transcript is not None:
