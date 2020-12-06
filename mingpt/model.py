@@ -72,7 +72,7 @@ class CausalSelfAttention(nn.Module):
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         att = (q @ k.transpose(-2, -1)) / math.sqrt(k.size(-1))
-        att = att.masked_fill(self.mask[..., :T, :T] == 0, float('-inf'))
+        att = att.masked_fill(self.mask[..., :T, :T].eq(0), float('-inf'))
         att = F.softmax(att, dim=-1)
         att = self.attn_drop(att)
         y = att @ v  # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
@@ -172,9 +172,11 @@ class GPT(nn.Module):
         param_dict = {pn: p for pn, p in self.named_parameters()}
         inter_params = decay & no_decay
         union_params = decay | no_decay
-        assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
-        assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
-                                                    % (str(param_dict.keys() - union_params), )
+        assert len(inter_params) == 0, \
+            f"parameters `{inter_params}` made it into both decay/no_decay sets!"
+
+        assert len(param_dict.keys() - union_params) == 0, \
+            f"parameters `{str(param_dict.keys() - union_params)}` were not separated into either decay/no_decay set!"
 
         # create the pytorch optimizer object
         optim_groups = [

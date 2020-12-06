@@ -14,8 +14,8 @@ def set_seed(seed):
 
 
 def top_k_logits_(logits, k):
-    v, ix = torch.topk(logits, k)
-    return logits.masked_fill_(logits.lt(v[:, [-1]]), float('-inf'))
+    v, _ = torch.topk(logits, k)
+    return logits.masked_fill_(logits.lt(v[..., [-1]]), float('-inf'))
 
 
 def generate(model, x, steps, temperature=1.0, sample=False, top_k=None):
@@ -38,7 +38,7 @@ def generate(model, x, steps, temperature=1.0, sample=False, top_k=None):
             logits, _ = model(state[i0:i1].unsqueeze(0))
 
         # pluck the logits at the final step and scale by temperature
-        logits = logits[:, -1, :] / temperature
+        logits = logits[0, -1, :] / temperature
 
         # optionally crop probabilities to only the top k options
         if top_k is not None:
@@ -58,7 +58,7 @@ def generate(model, x, steps, temperature=1.0, sample=False, top_k=None):
             i0, i1 = 0, i1 - i0
         ix = state[i1] = int(ix)
 
-        yield ix
+        yield ix, probs.cpu()
 
         # shift the context in the buffer
         i1 += 1
